@@ -27,4 +27,12 @@ public class SecondController {
         return agentDataService.getAgentByRestRetry(id);
 
     }
+
+    @GetMapping(value = "/test/{id}")
+    public ResponseEntity<ResponseDto> getAgentRetryTest(@PathVariable(value = "id") Integer id)
+            throws InterruptedException {
+
+        return agentDataService.getAgentByRestRetryTest(id);
+
+    }
 }
