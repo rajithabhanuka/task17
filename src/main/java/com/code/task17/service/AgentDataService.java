@@ -4,6 +4,7 @@ import com.code.task17.dto.AgentDto;
 import com.code.task17.dto.ErrorDto;
 import com.code.task17.dto.ResponseDto;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.retry.annotation.Backoff;
@@ -17,6 +18,12 @@ import org.springframework.web.client.RestTemplate;
 @Slf4j
 @Service
 public class AgentDataService {
+
+    @Value("${agent.id.url}")
+    private String uriGetId;
+
+    @Value("${agent.get.url}")
+    private String uriGetAgent;
 
     public ResponseEntity<String> getId(Integer id) {
         return ResponseEntity.status(HttpStatus.OK).body("progress");
@@ -35,12 +42,9 @@ public class AgentDataService {
 
     public ResponseEntity<ResponseDto> getAgentByRestRetry(Integer id) throws InterruptedException {
 
-        final String urigetId = "http://localhost:8080/api/1";
-        final String urigetAgent = "http://localhost:8080/api/agent/1";
-
         RestTemplate restTemplate = new RestTemplate();
 
-        String status = restTemplate.getForObject(urigetId, String.class);
+        String status = restTemplate.getForObject(uriGetId, String.class);
 
         if (status.equals("progress")) {
 
@@ -50,7 +54,7 @@ public class AgentDataService {
                     if (retries <= 3) {
                         Thread.sleep(2000);
                         log.info("Retry attempt " + retries + " Status still " + status);
-                        status = restTemplate.getForObject(urigetId, String.class);
+                        status = restTemplate.getForObject(uriGetId, String.class);
                         continue;
                     } else {
                         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -60,7 +64,7 @@ public class AgentDataService {
             }
         } else if (status.equals("success")) {
             log.info("status is success here");
-            AgentDto agentDto = restTemplate.getForObject(urigetAgent, AgentDto.class);
+            AgentDto agentDto = restTemplate.getForObject(uriGetAgent, AgentDto.class);
             return ResponseEntity.status(HttpStatus.OK)
                     .body(agentDto);
 
@@ -83,18 +87,15 @@ public class AgentDataService {
 
         mayFailedCallTimes++;
 
-        final String urigetId = "http://localhost:8080/api/1";
-        final String urigetAgent = "http://localhost:8080/api/agent/1";
-
         RestTemplate restTemplate = new RestTemplate();
 
-        String status = restTemplate.getForObject(urigetId, String.class);
+        String status = restTemplate.getForObject(uriGetId, String.class);
 
         if (mayFailedCallTimes <= 3) {
 
             log.info("Retrying " + mayFailedCallTimes + " Times");
 
-            status = restTemplate.getForObject(urigetId, String.class);
+            status = restTemplate.getForObject(uriGetId, String.class);
 
         }
 
